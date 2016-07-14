@@ -1,10 +1,18 @@
 # Weather-Predictor
 Implementation of a Weather Predicting algorithm
 
-What does this Project do?
-Gets a future date and predicts its weather conditions
+#How to Run the Project
 
-Algorithm Behind the weather prediction implementation
+Prerequisite: A web server, say Apcahe Tomcat server, browser
+Have the project in the webapps folder of Tomcat server.
+Start the server
+and Hit the URL: http://localhost:8080/WeatherPredicto/weatherPredictor.html
+(assuming the server is configured with port 8080)
+
+Choose a date as input and Click the "Get Weather Conditions" button to get the weather conditions of various stations
+
+
+# Algorithm Behind the weather prediction implementation
 
 Weather conditions of future dates are predicted based on two factors
 1. Weather conditions prevailed in previous year - same date as that of required date
