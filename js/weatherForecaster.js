@@ -17,36 +17,31 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 	                      ];
 	var url="";
 	$scope.requiredDate =  new Date();
-	/*$scope.temp = 0;
-	$scope.humidity =0;
-	$scope.rain = 0;
-	$scope.snow = 0;
-	$scope.wind = 0;
-	$scope.fog = 0;*/
-
+	
+	
 	//Method to get the weather conditions on  "Get Weather conditions" button click
 	$scope.getWeatherCondition = function(requiredDate){
-		console.log("getWeatherCondition!! "+requiredDate);
 		var datesForcomputation = [];
 		var windowSize = 7;
 		var prevYearData = [];
 		var curYearData = [];
 		//Looping Through all stations to get weather contions of each 
+		
 		for(var n=0; n<$scope.weatherData.length; n++){
+			
 			console.log("For city:: "+$scope.weatherData[n].city);
 			datesForcomputation = computeDates(requiredDate,true);
 			//Pre Yr(PY): weather conditions of 7 days before DT and weather conditions of 7 days after DT (Totally 15 days' weather conditions)
 			try{
 				//Looping through previous year dates of nth station - PY
 				for(var j=0; j<datesForcomputation.length; j++ ) {
-					url = "http://api.wunderground.com/api/33830ccdb5a2d182/history_"+(datesForcomputation[j].getFullYear()).toString()+((datesForcomputation[j].getMonth().toString().length<2)?"0"+datesForcomputation[j].getMonth():datesForcomputation[j].getMonth())+((datesForcomputation[j].getDate().toString().length<2)?"0"+datesForcomputation[j].getDate():datesForcomputation[j].getDate())+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
+					url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(datesForcomputation[j].getFullYear()).toString()+((datesForcomputation[j].getMonth().toString().length<2)?"0"+datesForcomputation[j].getMonth():datesForcomputation[j].getMonth())+((datesForcomputation[j].getDate().toString().length<2)?"0"+datesForcomputation[j].getDate():datesForcomputation[j].getDate())+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
 					$.ajax({
 						url:url,
 						type: 'GET',
 						async: false,
 						cache: false,
 						success: function(response){
-							console.log("PD in "+response.history.dailysummary.length);
 							prevYearData.push({"temp":response.history.dailysummary[0].meantempm,
 								"pressure":response.history.dailysummary[0].meanpressurem,
 								"humidity":response.history.dailysummary[0].humidity,
@@ -64,14 +59,13 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 				//weather conditions of nth Sattion for 7 days before required date in the current year - CY	 
 				datesForcomputation = computeDates(requiredDate,false);
 				for(var k=0; k<datesForcomputation.length; k++ ) {
-					url = "http://api.wunderground.com/api/33830ccdb5a2d182/history_"+(datesForcomputation[k].getFullYear()).toString()+((datesForcomputation[k].getMonth().toString().length<2)?"0"+datesForcomputation[k].getMonth():datesForcomputation[k].getMonth())+((datesForcomputation[k].getDate().toString().length<2)?"0"+datesForcomputation[k].getDate():datesForcomputation[k].getDate())+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
+					url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(datesForcomputation[k].getFullYear()).toString()+((datesForcomputation[k].getMonth().toString().length<2)?"0"+datesForcomputation[k].getMonth():datesForcomputation[k].getMonth())+((datesForcomputation[k].getDate().toString().length<2)?"0"+datesForcomputation[k].getDate():datesForcomputation[k].getDate())+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
 					$.ajax({
 						url:url,
 						type: 'GET',
 						async: false,
 						cache: false,
 						success: function(response){
-							console.log("CD Success!!! "+response.history.dailysummary.length);
 							curYearData.push({"temp":response.history.dailysummary[0].maxtempm,
 								"pressure":response.history.dailysummary[0].meanpressurem,
 								"humidity":response.history.dailysummary[0].humidity,
@@ -88,14 +82,11 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 			}catch(err){console.log("ERRORR !!! "+err.message);}
 			
 			//windowing to find the Euclidean distance of each window with the matrix CY as ED1, ED2, ED3, ..... ED9
-			console.log("PD in all "+angular.toJson(prevYearData));
-			console.log("CD in all "+angular.toJson(curYearData));
 			var i=0;
 			var j=0;
 			var e=0;
 			var windowcount = 0;
-			var edSet = [];
-			var ed = [[],[],[],[],[],[],[],[],[]];
+			var ed = [];
 			try{
 				while(i<7 && j<=prevYearData.length){
 					ed[e][i] = {
@@ -118,7 +109,6 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 					}
 				}
 			}catch(err){console.log("ERROR : "+err.message);}
-			console.log("Resultant edSet "+angular.toJson(ed)); 	
 
 			//  Find the Best window as W =  window corresponding to Min(ED)
 			// find min(ED) index
@@ -131,10 +121,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 					meanTemp[a] = tempSum[a]/7; 
 				}
 			}
-			console.log( tempSum + "-"+ meanTemp);
 			var minEDIndex = leadtElementIndex(meanTemp);
-			console.log("Min ED index is "+minEDIndex);
-			console.log("Min ED is "+angular.toJson(ed[minEDIndex]));
 
 			//In matrix W i.e corresponding(Min(ED)), find the day by day variation of each weather contition as VT, VP, VW, VH
 			//for PD
@@ -154,10 +141,9 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 			for(var i=0;i<prevMeaners.length; i++ ){
 				actualMeaners[i] = (prevMeaners[i]+currMeaners[i])/2;
 			}
-			console.log("actualMeaners - "+actualMeaners);
 
 			//Now, Add V to the previous day’s weather condition to get req. days's weather condition
-			url = "http://api.wunderground.com/api/33830ccdb5a2d182/history_"+(requiredDate.getFullYear()).toString()+((requiredDate.getMonth().toString().length<2)?"0"+requiredDate.getMonth():requiredDate.getMonth())+((requiredDate.getDate().toString().length<2)?"0"+(requiredDate.getDate()-1):(requiredDate.getDate()-1))+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
+			url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(requiredDate.getFullYear()).toString()+((requiredDate.getMonth().toString().length<2)?"0"+requiredDate.getMonth():requiredDate.getMonth())+((requiredDate.getDate().toString().length<2)?"0"+(requiredDate.getDate()-1):(requiredDate.getDate()-1))+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
 			var index = JsonIndexOf($scope.weatherData,$scope.weatherData[n].city.toString());
 			console.log("URL single "+url);
 			console.log("Index "+	$scope.weatherData[index].city+ " "+index);
@@ -242,7 +228,6 @@ function findMean(prevW){
 		meaners[i] =pressureSMean;
 
 	}
-	console.log("Meaners "+meaners);
 	return meaners;
 }
 
