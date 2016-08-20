@@ -5,16 +5,16 @@
 	<title>Weather Forecaster</title>
 	<script src="js/jquery-1.11.2.min.js"></script>
 	<script src="js/angular.min.js"></script>
+	<script type="text/javascript" src="http://localhost:8083/WebTest/jsunit/app/jsUnitCore.js"></script>
 	<script src="js/weatherForecaster.js"></script>
+	<script src="js/tester.js"></script>
 </head>
 <body ng-app="weatherApp">
 	<div ng-controller="weatherPredictor">
-		Enter the date for which weather needs to be predicted: <input
-			type="date" ng-model="requiredDate">
-		<button id="weatherBtn" ng-click="getWeatherCondition(requiredDate)">Get
-			Weather conditions</button>
+		Enter the date for which weather needs to be predicted: <input	type="date" ng-model="requiredDate">
+		<button id="weatherBtn" ng-click="getWeatherCondition(requiredDate)">Get Weather conditions</button>
 		<br> Predicted Weather:
-		<div id="loading" style="color: blue; display: none">Predicting Weather Please Wait...</div>
+		<div id="loading" style="color: blue; display: none">Predicting	Weather Please Wait...</div>
 		<hr>
 		Weather Station | Lat, Long | Date | Temperature | Pressure | Humidity | Rain | Wind | Fog | Snow
 		<hr>
@@ -25,5 +25,6 @@
 			| number:3}} | {{data.fog | number:3}} | {{data.snow | number:3}}</div>
 		<div id="error-block" style="color: red; display: none">System could not process the request due to Weather API failure!</div>
 	</div>
+
 </body>
 </html>
