@@ -14,9 +14,10 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 	                      {"city":"Namlea","country":"Australia","Code":"NAM","lat":-3.24,"long":127.05,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
 	                      {"city":"Taba","country":"Egypt","Code":"TCP","lat":29.49,"long":34.89,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
 	                      {"city":"Tokat","country":"Turkey","Code":"TJK","lat":40.32,"long":36.55,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
-	                        ];
+	                       ];
 	var url="";
 	$scope.requiredDate =  new Date();
+
 	//Method to get the weather conditions on  "Get Weather conditions" button click
 	$scope.getWeatherCondition = function(requiredDate){
 		var datesForcomputation = [];
@@ -24,227 +25,241 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 		var curYearData = [];
 		$('#loading').show();
 		$timeout(function() { 
-			//Looping Through all stations to get weather conditions of each 
-		for(var n=0; n<$scope.weatherData.length; n++){
-			//Pre Yr(PY): weather conditions of 7 days before DT and weather conditions of 7 days after DT (Totally 15 days' weather conditions)
-			datesForcomputation = computeDates(requiredDate,true);
-			prevYearData = serviceCall(datesForcomputation,$scope.weatherData[n]);
-			//Curr Yr(CY): weather conditions of nth Station for 7 days before required date in the current year
-			datesForcomputation = computeDates(requiredDate,false);
-			curYearData = serviceCall(datesForcomputation,$scope.weatherData[n]);
-			
-			//windowing to find the Euclidean distance(ed) of each window with the matrix CY as ED1, ED2, ED3, ..... ED9
-			var ed = [];
-			ed = windower(prevYearData,curYearData);
-			//  Find the Best window as W =  window corresponding to Min(ED)
-			// find min(ED) index
-			var minEDIndex = leastElementIndex(ed);
+			try{
+				//Looping Through all stations to get weather conditions of each 
+				for(var n=0; n<$scope.weatherData.length; n++){
+					//Pre Yr(PY): weather conditions of 7 days before DT and weather conditions of 7 days after DT (Totally 15 days' weather conditions)
+					datesForcomputation = computeDates(requiredDate,true);
+					for(var j=0; j<datesForcomputation.length; j++ ) {
+						prevYearData.push(serviceCall(datesForcomputation[j],$scope.weatherData[n]));
+					}
+					//prevYearData = serviceCall(datesForcomputation,$scope.weatherData[n]);
+					//Curr Yr(CY): weather conditions of nth Station for 7 days before required date in the current year
+					datesForcomputation = computeDates(requiredDate,false);
+					for(var j=0; j<datesForcomputation.length; j++ ) {
+						curYearData.push(serviceCall(datesForcomputation[j],$scope.weatherData[n]));
+					}
+					//windowing to find the Euclidean distance(ed) of each window with the matrix CY as ED1, ED2, ED3, ..... ED9
+					var ed = [];
+					ed = windower(prevYearData,curYearData);
+					//  Find the Best window as W =  window corresponding to Min(ED)
+					// find min(ED) index
+					var minEDIndex = leastElementIndex(ed);
 
-			//In matrix W i.e corresponding(Min(ED)), find the day by day variation of each weather contition as VT, VP, VW, VH
-			//for PD
-			var prevW = [];
-			for(var i=minEDIndex; i<prevYearData.length; i++ ){
-				prevW.push(prevYearData[i]);
-			}
-			var prevMeaners = findMean(prevW);
-			
-			//for CD
-			var currMeaners = findMean(curYearData);
-			//Prediction Factors - Mean of all weather conditions - both PD and CD
-			var actualMeaners = [];
-			for(var i=0;i<prevMeaners.length; i++ ){
-				actualMeaners[i] = (prevMeaners[i]+currMeaners[i])/2;
-			}
-			//Now, Add V to the previous day’s weather condition to get req. days's weather condition
-			url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(requiredDate.getFullYear()).toString()+((requiredDate.getMonth().toString().length<2)?"0"+requiredDate.getMonth():requiredDate.getMonth())+((requiredDate.getDate().toString().length<2)?"0"+(requiredDate.getDate()-1):(requiredDate.getDate()-1))+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
-			console.log("URL single "+url);
+					//In matrix W i.e corresponding(Min(ED)), find the day by day variation of each weather contition as VT, VP, VW, VH
+					//for PD
+					var prevW = [];
+					for(var i=minEDIndex; i<prevYearData.length; i++ ){
+						prevW.push(prevYearData[i]);
+					}
+					var prevMeaners = findMean(prevW);
+					//for CD
+					var currMeaners = findMean(curYearData);
+					//Prediction Factors - Mean of all weather conditions - both PD and CD
+					var actualMeaners = [];
+					for(var i=0;i<prevMeaners.length; i++ ){
+						actualMeaners[i] = (prevMeaners[i]+currMeaners[i])/2;
+					}
 
-			// Get the Weather Condition of Previous day from API
+					//Now, Add V to the previous day’s weather condition to get req. days's weather condition
+					url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(requiredDate.getFullYear()).toString()+((requiredDate.getMonth().toString().length<2)?"0"+requiredDate.getMonth():requiredDate.getMonth())+((requiredDate.getDate().toString().length<2)?"0"+(requiredDate.getDate()-1):(requiredDate.getDate()-1))+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
+					// Get the Weather Condition of Previous day from API
+					$.ajax({
+						url:url,
+						type: 'GET',
+						async: false,
+						cache: false,
+						success: function(response){
+							// Add the Prediction factor to previous weather conditions
+							$scope.weatherData[n].temperature = parseInt(response.history.dailysummary[0].maxtempm)+actualMeaners[0];
+							$scope.weatherData[n].humidity =parseInt(response.history.dailysummary[0].humidity)+actualMeaners[1];
+							$scope.weatherData[n].pressure = parseInt(response.history.dailysummary[0].meanwindspdm)+actualMeaners[2];
+							$scope.weatherData[n].rain = parseInt(response.history.dailysummary[0].rain)+actualMeaners[3];
+							$scope.weatherData[n].snow = parseInt(response.history.dailysummary[0].snow)+actualMeaners[4];
+							$scope.weatherData[n].wind = parseInt(response.history.dailysummary[0].meanwindspdm)+actualMeaners[5];
+							$scope.weatherData[n].fog = parseInt(response.history.dailysummary[0].fog)+actualMeaners[6];
+							$('#loading').hide();
+						},error: function(){
+							console.log(" Error with external API for url "+url);
+							$('#loading').hide();
+							$('#error-block').css("display","block");
+						}
+					});
+
+				}
+			}catch(err){
+				console.log("ERROR : "+err.message);
+			}
+		},0);
+	}
+	
+	function serviceCall(datesForcomputation,weatherData){
+		var url = "";
+		var data = {};
+		try{
+			url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(datesForcomputation.getFullYear()).toString()+((datesForcomputation.getMonth().toString().length<2)?"0"+datesForcomputation.getMonth():datesForcomputation.getMonth())+((datesForcomputation.getDate().toString().length<2)?"0"+datesForcomputation.getDate():datesForcomputation.getDate())+"/q/CA/"+weatherData.city.toString()+".json";
 			$.ajax({
 				url:url,
 				type: 'GET',
 				async: false,
-				cache: false,
+				cache: true,
 				success: function(response){
-					// Add the Prediction factor to previous weather conditions
-					$scope.weatherData[n].temperature = parseInt(response.history.dailysummary[0].maxtempm)+actualMeaners[0];
-					$scope.weatherData[n].humidity =parseInt(response.history.dailysummary[0].humidity)+actualMeaners[1];
-					$scope.weatherData[n].pressure = parseInt(response.history.dailysummary[0].meanwindspdm)+actualMeaners[2];
-					$scope.weatherData[n].rain = parseInt(response.history.dailysummary[0].rain)+actualMeaners[3];
-					$scope.weatherData[n].snow = parseInt(response.history.dailysummary[0].snow)+actualMeaners[4];
-					$scope.weatherData[n].wind = parseInt(response.history.dailysummary[0].meanwindspdm)+actualMeaners[5];
-					$scope.weatherData[n].fog = parseInt(response.history.dailysummary[0].fog)+actualMeaners[6];
-					$('#loading').hide();
-				},error: function(){
-					console.log(" Error with external API for url "+url);
-					$('#loading').hide();
-					$('#error-block').css("display","block");
+					console.log("!!");
+					data={"temp":response.history.dailysummary[0].meantempm,
+							"pressure":response.history.dailysummary[0].meanpressurem,
+							"humidity":response.history.dailysummary[0].humidity,
+							"wind":response.history.dailysummary[0].meanwindspdm,
+							"fog":response.history.dailysummary[0].fog,
+							"rain":response.history.dailysummary[0].rain,
+							"snow":response.history.dailysummary[0].snow
+					};
+
+				},error: function(response){
+					console.log("Errored for "+url);
 				}
 			});
+		}catch(err){
+			console.log("ERROR : "+err.message);
 		}
-		},3);
+		return data;
+	}
+
+	function windower(prevYearData,curYearData){
+		var i=0;
+		var j=0;
+		var e=0;
+		var windowcount = 0;
+		var ed = [];
+		try{
+			while(i<curYearData.length && j<prevYearData.length){
+				if(!ed[e]) ed[e] = [];
+				if(prevYearData[j]!="undefined" && curYearData[i]!="undefined")
+					ed[e][i] = {
+						"temp" : prevYearData[j].temp - curYearData[i].temp,
+						"pressure" : prevYearData[j].pressure - curYearData[i].pressure,
+						"humidity" : prevYearData[j].humidity - curYearData[i].humidity,
+						"wind" : prevYearData[j].wind - curYearData[i].wind,
+						"fog" : prevYearData[j].fog - curYearData[i].fog,
+						"snow" : prevYearData[j].snow - curYearData[i].snow,
+						"rain" : prevYearData[j].rain - curYearData[i].rain
+				};
+				else console.log("undefined");
+				i++; j++; 
+				if(i==(curYearData.length) && windowcount <= 8 ){
+					windowcount++;
+					i=0;
+					j = windowcount;
+					e++;
+				}
+			}
+		}catch(err){
+			console.log("ERROR : "+err.message);
+		}
+		return ed;
+	}
+
+//	Method to find the index of min element in an array
+	Array.prototype.min = function() {
+		return Math.min.apply(null, this);
+	};
+
+//	Method to find the Mean of weather conditions
+	function findMean(prevW){
+		var meaners = [];
+		var daytoDayDiff = [];
+		for(var i=0; i<prevW.length-1; i++){
+			daytoDayDiff.push( {"temp":prevW[i].temp - prevW[i+1].temp,"humidity":prevW[i].humidity - prevW[i+1].humidity,
+				"wind":prevW[i].wind - prevW[i+1].wind,"fog":prevW[i].fog - prevW[i+1].fog,
+				"snow":prevW[i].snow - prevW[i+1].snow,"rain":prevW[i].rain - prevW[i+1].rain,
+				"pressure":prevW[i].pressure - prevW[i+1].pressure
+			});
+		}
+		//Find the Mean of VT, VP, VW, VH as MT, MP, MW, MH
+		var tempSum = 0.0; var tempMean = 0;
+		var humiditysum = 0.0; var humidityMean =0;
+		var windSum = 0.0; var windMean = 0;
+		var fogSum = 0.0; var fogMean = 0;
+		var snowSum = 0.0; var snowMean = 0;
+		var rainSum = 0.0; var rainMean = 0;
+		var pressureSum = 0.0; var pressureSMean = 0;
+		for(var i=0; i<daytoDayDiff.length; i++){
+
+			if(daytoDayDiff[i].temp) 
+				tempSum += daytoDayDiff[i].temp;
+			if(daytoDayDiff[i].humidity)
+				humiditysum += daytoDayDiff[i].humidity;
+			if(daytoDayDiff[i].wind)
+				windSum += daytoDayDiff[i].wind;
+			if(daytoDayDiff[i].fog)
+				fogSum += daytoDayDiff[i].fog;
+			if(daytoDayDiff[i].snow)		
+				snowSum += daytoDayDiff[i].snow;
+			if(daytoDayDiff[i].rain)
+				rainSum += daytoDayDiff[i].rain;
+			if(daytoDayDiff[i].pressure)
+				pressureSum += daytoDayDiff[i].pressure;
+		}
+		tempMean = tempSum/daytoDayDiff.length;
+		meaners[0] =tempMean;
+		humidityMean = humiditysum/daytoDayDiff.length;
+		meaners[1] =humidityMean;
+		windMean = windSum/daytoDayDiff.length;
+		meaners[2] =windMean;
+		fogMean = fogSum/daytoDayDiff.length;
+		meaners[3] =fogMean;
+		snowMean = snowSum/daytoDayDiff.length;
+		meaners[4] =snowMean;
+		rainMean = rainSum/daytoDayDiff.length;
+		meaners[5] =rainMean;
+		pressureSMean = pressureSum/daytoDayDiff.length;
+		meaners[6] =pressureSMean;
+		return meaners;
+	}
+
+	function leastElementIndex(ed){
+		tempSum = [];
+		meanTemp = [];
+		for(var a = 0; a<ed.length; a++){
+			tempSum[a] = 0; meanTemp[a] = 0.0;
+			for(var b=0; b<ed[a].length; b++){
+				tempSum[a] = tempSum[a] + ed[a][b].temp;
+				meanTemp[a] = tempSum[a]/7; 
+			}
+		}
+		var minEleIndex = 0;
+		for(var i=0; i<meanTemp.length; i++){
+			if(meanTemp[i]<meanTemp[minEleIndex]) minEleIndex =i;
+		}
+		return minEleIndex;
+	}
+
+//	Method to find the Previous year and Current year dates
+	function computeDates(requiredDate, prev){
+		var dates = [];
+		if(prev){ 
+			//Prev year dates
+			requiredDate.setDate(requiredDate.getDate() - 365);
+			dates = getDates(requiredDate.addDays(-7), requiredDate.addDays(7));
+		}else{
+			//curr year dates
+			dates = getDates(requiredDate.addDays(-7), requiredDate);
+		}
+		return dates;
+	}
+
+	Date.prototype.addDays = function(days) {
+		var dat = new Date(this.valueOf())
+		dat.setDate(dat.getDate() + days);
+		return dat;
+	}
+
+	function getDates(startDate, stopDate) {
+		var dateArray = new Array();
+		var currentDate = startDate;
+		while (currentDate <= stopDate) {
+			dateArray.push(currentDate)
+			currentDate = currentDate.addDays(1);
+		}
+		return dateArray;
 	}
 }]);
-
-function serviceCall(datesForcomputation,weatherData){
-	var url = "";
-	var serviceData = [];
-	for(var j=0; j<datesForcomputation.length; j++ ) {
-		url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(datesForcomputation[j].getFullYear()).toString()+((datesForcomputation[j].getMonth().toString().length<2)?"0"+datesForcomputation[j].getMonth():datesForcomputation[j].getMonth())+((datesForcomputation[j].getDate().toString().length<2)?"0"+datesForcomputation[j].getDate():datesForcomputation[j].getDate())+"/q/CA/"+weatherData.city.toString()+".json";
-		$.ajax({
-			url:url,
-			type: 'GET',
-			async: false,
-			cache: true,
-			success: function(response){
-				console.log("!!");
-				serviceData.push({"temp":response.history.dailysummary[0].meantempm,
-					"pressure":response.history.dailysummary[0].meanpressurem,
-					"humidity":response.history.dailysummary[0].humidity,
-					"wind":response.history.dailysummary[0].meanwindspdm,
-					"fog":response.history.dailysummary[0].fog,
-					"rain":response.history.dailysummary[0].rain,
-					"snow":response.history.dailysummary[0].snow
-				});
-			},error: function(response){
-				console.log("Errored for "+url);
-			}
-		});
-	}
-	return serviceData;
-}
-
-function windower(prevYearData,curYearData){
-	
-	var i=0;
-	var j=0;
-	var e=0;
-	var windowcount = 0;
-	var ed = [];
-	console.log("Lengths: "+prevYearData.length+" "+curYearData.length);
-	try{
-		while(i<curYearData.length && j<prevYearData.length){
-			if(!ed[e]) ed[e] = [];
-			if(prevYearData[j]!="undefined" && curYearData[i]!="undefined")
-			ed[e][i] = {
-					"temp" : prevYearData[j].temp - curYearData[i].temp,
-					"pressure" : prevYearData[j].pressure - curYearData[i].pressure,
-					"humidity" : prevYearData[j].humidity - curYearData[i].humidity,
-					"wind" : prevYearData[j].wind - curYearData[i].wind,
-					"fog" : prevYearData[j].fog - curYearData[i].fog,
-					"snow" : prevYearData[j].snow - curYearData[i].snow,
-					"rain" : prevYearData[j].rain - curYearData[i].rain
-			};
-			else console.log("undefined");
-			i++; j++; 
-			if(i==(curYearData.length) && windowcount <= 8 ){
-				console.log("NEXT WIMDOW!");
-				windowcount++;
-				i=0;
-				j = windowcount;
-				e++;
-			}
-		}
-	}catch(err){
-		console.log("ERROR : "+err.message);
-	}
-	return ed;
-}
-
-//Method to find the index of min element in an array
-Array.prototype.min = function() {
-	return Math.min.apply(null, this);
-};
-
-//Method to find the Mean of weather conditions
-function findMean(prevW){
-	var meaners = [];
-	var daytoDayDiff = [];
-	for(var i=0; i<prevW.length-1; i++){
-		daytoDayDiff.push( {"temp":prevW[i].temp - prevW[i+1].temp,"humidity":prevW[i].humidity - prevW[i+1].humidity,
-			"wind":prevW[i].wind - prevW[i+1].wind,"fog":prevW[i].fog - prevW[i+1].fog,
-			"snow":prevW[i].snow - prevW[i+1].snow,"rain":prevW[i].rain - prevW[i+1].rain,
-			"pressure":prevW[i].pressure - prevW[i+1].pressure
-		});
-	}
-	//Find the Mean of VT, VP, VW, VH as MT, MP, MW, MH
-	var tempSum = 0; var tempMean = 0;
-	var humiditysum = 0; var humidityMean =0;
-	var windSum = 0; var windMean = 0;
-	var fogSum = 0; var fogMean = 0;
-	var snowSum = 0; var snowMean = 0;
-	var rainSum = 0; var rainMean = 0;
-	var pressureSum = 0; var pressureSMean = 0;
-
-	for(var i=0; i<daytoDayDiff.length; i++){
-		tempSum += daytoDayDiff[i].temp;
-		humiditysum += daytoDayDiff[i].humidity;
-		windSum += daytoDayDiff[i].wind;
-		fogSum += daytoDayDiff[i].fog;
-		snowSum += daytoDayDiff[i].temp;
-		rainSum += daytoDayDiff[i].snow;
-		pressureSum += daytoDayDiff[i].pressure;
-	}
-	tempMean = tempSum/daytoDayDiff.length;
-	meaners[0] =tempMean;
-	humidityMean = humiditysum/daytoDayDiff.length;
-	meaners[1] =humidityMean;
-	windMean = windSum/daytoDayDiff.length;
-	meaners[2] =windMean;
-	fogMean = fogSum/daytoDayDiff.length;
-	meaners[3] =fogMean;
-	snowMean = snowSum/daytoDayDiff.length;
-	meaners[4] =snowMean;
-	rainMean = rainSum/daytoDayDiff.length;
-	meaners[5] =rainMean;
-	pressureSMean = pressureSum/daytoDayDiff.length;
-	meaners[6] =pressureSMean;
-	return meaners;
-}
-
-function leastElementIndex(ed){
-	tempSum = [];
-	meanTemp = [];
-	for(var a = 0; a<ed.length; a++){
-		tempSum[a] = 0; meanTemp[a] = 0.0;
-		for(var b=0; b<ed[a].length; b++){
-			tempSum[a] = tempSum[a] + ed[a][b].temp;
-			meanTemp[a] = tempSum[a]/7; 
-		}
-	}
-	var minEleIndex = 0;
-	for(var i=0; i<meanTemp.length; i++){
-		if(meanTemp[i]<meanTemp[minEleIndex]) minEleIndex =i;
-	}
-	return minEleIndex;
-}
-
-//Method to find the Previous year and Current year dates
-function computeDates(requiredDate, prev){
-	var dates = [];
-	if(prev){ 
-		//Prev year dates
-		requiredDate.setDate(requiredDate.getDate() - 365);
-		dates = getDates(requiredDate.addDays(-7), requiredDate.addDays(7));
-	}else{
-		//curr year dates
-		dates = getDates(requiredDate.addDays(-7), requiredDate);
-	}
-	return dates;
-}
-
-Date.prototype.addDays = function(days) {
-	var dat = new Date(this.valueOf())
-	dat.setDate(dat.getDate() + days);
-	return dat;
-}
-
-function getDates(startDate, stopDate) {
-	var dateArray = new Array();
-	var currentDate = startDate;
-	while (currentDate <= stopDate) {
-		dateArray.push(currentDate)
-		currentDate = currentDate.addDays(1);
-	}
-	return dateArray;
-}
