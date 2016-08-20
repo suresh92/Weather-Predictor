@@ -1,5 +1,5 @@
-var weatherApp = angular.module('weatherApp',[]);
-
+var weatherApp = angular.module('weatherApp',[]); // angular Module/app creation
+// angular Controller
 weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',function($scope,$http,$q,$timeout){
 	// Static Input Data - Weather Stations
 	$scope.weatherData = [
@@ -16,8 +16,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 	                      {"city":"Tokat","country":"Turkey","Code":"TJK","lat":40.32,"long":36.55,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
 	                       ];
 	var url="";
-	$scope.requiredDate =  new Date();
-
+	$scope.requiredDate =  new Date();	// Date given by user
 	//Method to get the weather conditions on  "Get Weather conditions" button click
 	$scope.getWeatherCondition = function(requiredDate){
 		var datesForcomputation = [];
@@ -85,7 +84,6 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 							$('#error-block').css("display","block");
 						}
 					});
-
 				}
 			}catch(err){
 				console.log("ERROR : "+err.message);
@@ -93,8 +91,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 		},0);
 	}
 }]);
-
-
+// Function : To fetch API Weather Data on a particular date (dateForComputatio) 
 function serviceCall(datesForcomputation,weatherData){
 	var url = "";
 	var data = {};
@@ -116,7 +113,6 @@ function serviceCall(datesForcomputation,weatherData){
 						"rain":response.history.dailysummary[0].rain,
 						"snow":response.history.dailysummary[0].snow
 				};
-
 			},error: function(response){
 				console.log("Errored for "+url);
 			}
@@ -127,7 +123,6 @@ function serviceCall(datesForcomputation,weatherData){
 	console.log(angular.toJson(data));
 	return data;
 }
-
 
 function windower(prevYearData,curYearData){
 	var i=0;
@@ -223,7 +218,6 @@ function findMean(prevW){
 	return meaners;
 }
 
-
 function leastElementIndex(ed){
 	tempSum = [];
 	meanTemp = [];
@@ -257,13 +251,13 @@ function computeDates(requiredDate, prev){
 	return dates;
 
 }
-
+// Function: To add days to given / specified date
 Date.prototype.addDays = function(days) {
 	var dat = new Date(this.valueOf())
 	dat.setDate(dat.getDate() + days);
 	return dat;
 }
-
+// Function : to get the dates between startDate and stopDate
 function getDates(startDate, stopDate) {
 	console.log("getDates "+startDate +" "+stopDate);
 	var dateArray = new Array();
@@ -275,5 +269,3 @@ function getDates(startDate, stopDate) {
 	console.log("getDates "+dateArray);
 	return dateArray;
 }
-
-
