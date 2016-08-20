@@ -4,7 +4,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 	// Static Input Data - Weather Stations
 	$scope.weatherData = [
 	                      {"city":"Jakarta","country":"Indonesia","Code":"HLPA","lat":-6.1745,"long":106.8227,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
-	                      /*{"city":"Chennai","country":"India","Code":"MAA","lat":13.0827,"long":80.2707,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
+	                      {"city":"Chennai","country":"India","Code":"MAA","lat":13.0827,"long":80.2707,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
 	                      {"city":"Washington","country":"United States","Code":"BOF","lat":49,"long":-72.5,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
 	                      {"city":"Nairobi","country":"Kenya","Code":"NBO","lat":1.2,"long":36.9,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
 	                      {"city":"Ankara","country":"Turkey","Code":"ESB","lat":40.08,"long":33,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
@@ -14,7 +14,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 	                      {"city":"Namlea","country":"Australia","Code":"NAM","lat":-3.24,"long":127.05,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
 	                      {"city":"Taba","country":"Egypt","Code":"TCP","lat":29.49,"long":34.89,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
 	                      {"city":"Tokat","country":"Turkey","Code":"TJK","lat":40.32,"long":36.55,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
-	                       */];
+	                       ];
 	var url="";
 	$scope.requiredDate =  new Date();
 
@@ -61,7 +61,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 						actualMeaners[i] = (prevMeaners[i]+currMeaners[i])/2;
 					}
 
-					//Now, Add V to the previous day’s weather condition to get req. days's weather condition
+					//Now, Add V to the previous dayâ€™s weather condition to get req. days's weather condition
 					url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(requiredDate.getFullYear()).toString()+((requiredDate.getMonth().toString().length<2)?"0"+requiredDate.getMonth():requiredDate.getMonth())+((requiredDate.getDate().toString().length<2)?"0"+(requiredDate.getDate()-1):(requiredDate.getDate()-1))+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
 					// Get the Weather Condition of Previous day from API
 					$.ajax({
