@@ -1,5 +1,7 @@
+// Angular App and Module creation
 var weatherApp = angular.module('weatherApp',[]);
 
+//Angular Controller definition
 weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',function($scope,$http,$q,$timeout){
 	// Static Input Data - Weather Stations
 	$scope.weatherData = [
@@ -16,7 +18,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 	                      {"city":"Tokat","country":"Turkey","Code":"TJK","lat":40.32,"long":36.55,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
 	                       ];
 	var url="";
-	$scope.requiredDate =  new Date();
+	$scope.requiredDate =  new Date(); 		// Date which user enters on which weather data is required
 
 	//Method to get the weather conditions on  "Get Weather conditions" button click
 	$scope.getWeatherCondition = function(requiredDate){
@@ -47,13 +49,13 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 					var minEDIndex = leastElementIndex(ed);
 
 					//In matrix W i.e corresponding(Min(ED)), find the day by day variation of each weather contition as VT, VP, VW, VH
-					//for PD
+					//for PY
 					var prevW = [];
 					for(var i=minEDIndex; i<prevYearData.length; i++ ){
 						prevW.push(prevYearData[i]);
 					}
 					var prevMeaners = findMean(prevW);
-					//for CD
+					//for CY
 					var currMeaners = findMean(curYearData);
 					//Prediction Factors - Mean of all weather conditions - both PD and CD
 					var actualMeaners = [];
@@ -85,14 +87,13 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 							$('#error-block').css("display","block");
 						}
 					});
-
 				}
 			}catch(err){
 				console.log("ERROR : "+err.message);
 			}
 		},0);
 	}
-	
+	// Function: API Call for fetching weather data on specified date
 	function serviceCall(datesForcomputation,weatherData){
 		var url = "";
 		var data = {};
@@ -113,7 +114,6 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 							"rain":response.history.dailysummary[0].rain,
 							"snow":response.history.dailysummary[0].snow
 					};
-
 				},error: function(response){
 					console.log("Errored for "+url);
 				}
@@ -123,7 +123,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 		}
 		return data;
 	}
-
+	// Function : to Form windows with weather data
 	function windower(prevYearData,curYearData){
 		var i=0;
 		var j=0;
@@ -183,7 +183,6 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 		var rainSum = 0.0; var rainMean = 0;
 		var pressureSum = 0.0; var pressureSMean = 0;
 		for(var i=0; i<daytoDayDiff.length; i++){
-
 			if(daytoDayDiff[i].temp) 
 				tempSum += daytoDayDiff[i].temp;
 			if(daytoDayDiff[i].humidity)
@@ -233,7 +232,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 		return minEleIndex;
 	}
 
-//	Method to find the Previous year and Current year dates
+//	Function: to find the Previous year and Current year dates
 	function computeDates(requiredDate, prev){
 		var dates = [];
 		if(prev){ 
@@ -246,13 +245,13 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 		}
 		return dates;
 	}
-
+//	Function: to add days to current / specified date
 	Date.prototype.addDays = function(days) {
 		var dat = new Date(this.valueOf())
 		dat.setDate(dat.getDate() + days);
 		return dat;
 	}
-
+// 	Function: to get days between a startDate and stopDate
 	function getDates(startDate, stopDate) {
 		var dateArray = new Array();
 		var currentDate = startDate;
