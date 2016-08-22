@@ -154,6 +154,10 @@ function findMean(prevW){
 	console.log("findMean "+angular.toJson(prevW));
 	var meaners = [];
 	var daytoDayDiff = [];
+	for(var i=0; i<=6; i++) {
+		sum[i] = 0.0;
+		meaners[i] = 0.0;
+	}
 	for(var i=0; i<prevW.length-1; i++){
 		daytoDayDiff.push( {"temp":prevW[i].temp - prevW[i+1].temp,"humidity":prevW[i].humidity - prevW[i+1].humidity,
 			"wind":prevW[i].wind - prevW[i+1].wind,"fog":prevW[i].fog - prevW[i+1].fog,
@@ -162,45 +166,17 @@ function findMean(prevW){
 		});
 	}
 	//Find the Mean of VT, VP, VW, VH as MT, MP, MW, MH
-	var tempSum = 0.0; var tempMean = 0;
-	var humiditysum = 0.0; var humidityMean =0;
-	var windSum = 0.0; var windMean = 0;
-	var fogSum = 0.0; var fogMean = 0;
-	var snowSum = 0.0; var snowMean = 0;
-	var rainSum = 0.0; var rainMean = 0;
-	var pressureSum = 0.0; var pressureSMean = 0;
 	for(var i=0; i<daytoDayDiff.length; i++){
-
-		if(daytoDayDiff[i].temp) 
-			tempSum += daytoDayDiff[i].temp;
-		if(daytoDayDiff[i].humidity)
-			humiditysum += daytoDayDiff[i].humidity;
-		if(daytoDayDiff[i].wind)
-			windSum += daytoDayDiff[i].wind;
-		if(daytoDayDiff[i].fog)
-			fogSum += daytoDayDiff[i].fog;
-		if(daytoDayDiff[i].snow)		
-			snowSum += daytoDayDiff[i].snow;
-		if(daytoDayDiff[i].rain)
-			rainSum += daytoDayDiff[i].rain;
-		if(daytoDayDiff[i].pressure)
-			pressureSum += daytoDayDiff[i].pressure;
+		if(daytoDayDiff[i].temp) sum[0] += daytoDayDiff[i].temp;
+		if(daytoDayDiff[i].humidity) sum[1] += daytoDayDiff[i].humidity;
+		if(daytoDayDiff[i].wind) sum[2] += daytoDayDiff[i].wind;
+		if(daytoDayDiff[i].fog)	sum[3] += daytoDayDiff[i].fog;
+		if(daytoDayDiff[i].snow) sum[4] += daytoDayDiff[i].snow;
+		if(daytoDayDiff[i].rain) sum[5] += daytoDayDiff[i].rain;
+		if(daytoDayDiff[i].pressure) sum[6] += daytoDayDiff[i].pressure;
 	}
-	tempMean = tempSum/daytoDayDiff.length;
-	meaners[0] =tempMean;
-	humidityMean = humiditysum/daytoDayDiff.length;
-	meaners[1] =humidityMean;
-	windMean = windSum/daytoDayDiff.length;
-	meaners[2] =windMean;
-	fogMean = fogSum/daytoDayDiff.length;
-	meaners[3] =fogMean;
-	snowMean = snowSum/daytoDayDiff.length;
-	meaners[4] =snowMean;
-	rainMean = rainSum/daytoDayDiff.length;
-	meaners[5] =rainMean;
-	pressureSMean = pressureSum/daytoDayDiff.length;
-	meaners[6] =pressureSMean;
-	console.log(meaners)
+	for(var i=0; i<=6; i++){
+		meaners[i] = sum[i]/daytoDayDiff.length;
 	return meaners;
 }
 
