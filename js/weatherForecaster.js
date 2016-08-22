@@ -58,10 +58,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 					url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(requiredDate.getFullYear()).toString()+((requiredDate.getMonth().toString().length<2)?"0"+requiredDate.getMonth():requiredDate.getMonth())+((requiredDate.getDate().toString().length<2)?"0"+(requiredDate.getDate()-1):(requiredDate.getDate()-1))+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
 					// Get the Weather Condition of Previous day from API
 					$.ajax({
-						url:url,
-						type: 'GET',
-						async: false,
-						cache: false,
+						url:url,	type: 'GET',	async: false,	cache: false,
 						success: function(response){
 							// Add the Prediction factor to previous weather conditions
 							$scope.weatherData[n].temperature = parseInt(response.history.dailysummary[0].maxtempm)+actualMeaners[0];
@@ -93,10 +90,7 @@ function serviceCall(datesForcomputation,weatherData){
 	try{
 		url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(datesForcomputation.getFullYear()).toString()+((datesForcomputation.getMonth().toString().length<2)?"0"+datesForcomputation.getMonth():datesForcomputation.getMonth())+((datesForcomputation.getDate().toString().length<2)?"0"+datesForcomputation.getDate():datesForcomputation.getDate())+"/q/CA/"+weatherData.city.toString()+".json";
 		$.ajax({
-			url:url,
-			type: 'GET',
-			async: false,
-			cache: true,
+			url:url,	type: 'GET',	async: false,	cache: true,
 			success: function(response){
 				console.log("!!");
 				data={"temp":response.history.dailysummary[0].meantempm,
@@ -107,14 +101,14 @@ function serviceCall(datesForcomputation,weatherData){
 						"rain":response.history.dailysummary[0].rain,
 						"snow":response.history.dailysummary[0].snow
 				};
-			},error: function(response){
+			},error: function(){
 				console.log("Errored for "+url);
 			}
 		});
 	}catch(err){
 		console.log("ERROR : "+err.message);
+		console.log("Exception while fetching data for following url : "+url);
 	}
-	console.log(angular.toJson(data));
 	return data;
 }
 
