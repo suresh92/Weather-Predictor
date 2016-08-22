@@ -78,6 +78,8 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 				}
 			}catch(err){
 				console.log("ERROR : "+err.message);
+				$('#loading').hide();
+				$('#error-block').css("display","block");
 			}
 		},0);
 	}
@@ -102,6 +104,7 @@ function serviceCall(datesForcomputation,weatherData){
 				};
 			},error: function(){
 				console.log("Errored for "+url);
+				console.log("Exception while fetching data for following url : "+url);
 			}
 		});
 	}catch(err){
