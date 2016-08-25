@@ -21,6 +21,7 @@ Weather conditions of future dates are predicted based on two factors
 Algorithm is as follows:
 
 Step 1: Have the date on which the weather conditions(temperature, pressure, hmidity, etc.,) needs to be predicted as RD
+
 Step 2: Get the weather conditions of following days
 
 		Prev Yr(PD): weather conditions of 7 days before RD of prev year and weather conditions of 7 days after RD of prev year (Totally 15 days' weather conditions)
@@ -55,6 +56,6 @@ Step 8: Now V is the Predicted Variaon Factor
 Step 9: Add V to the previous day’s weather condition to get RD's weather condition
 
 
-
+#Technology Used
 Repository consists of the a HTML page and a JavaScript code to predict the Weather of future dates.
 
