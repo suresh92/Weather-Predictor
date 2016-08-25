@@ -57,5 +57,7 @@ Step 9: Add V to the previous day’s weather condition to get RD's weather cond
 
 
 #Technology Used
-Repository consists of the a HTML page and a JavaScript code to predict the Weather of future dates.
+
+HTML5
+Angular JS
 
