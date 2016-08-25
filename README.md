@@ -58,6 +58,5 @@ Step 9: Add V to the previous day’s weather condition to get RD's weather cond
 
 #Technology Used
 
-HTML5
-Angular JS
+HTML5 and Angular JS
 
