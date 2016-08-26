@@ -35,7 +35,6 @@ QUnit.test('Testing External API', function(assert){
 		}
 	});
 	done();
-
 });
 
 QUnit.test("Testing the Service Call Success Logic ", function( assert ) {
@@ -46,7 +45,6 @@ QUnit.test("Testing the Service Call Success Logic ", function( assert ) {
 			{"fog": "0","humidity": "57","pressure": "1009.92","rain": "0","snow": "0","temp": "29","wind": "14"});
 	call(null,{"city":"Jakarta","country":"Indonesia","Code":"HLPA","lat":-6.1745,"long":106.8227,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},{});
 	call(new Date("Fri Aug 14 2015 15:41:47 GMT+0530 (India Standard Time)"),{},{});
-
 });
 
 QUnit.test("Test - Get dates between 2 dates", function( assert ) {
