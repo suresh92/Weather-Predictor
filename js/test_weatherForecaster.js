@@ -1,89 +1,114 @@
-function setUp() {
-	// fixture setup before running a testcase
-}
+QUnit.test('Testing External API', function(assert){
+	assert.expect(3); 
+	 var done = assert.async();
+	 // Call with Success Input
+	$.ajax({ 
+		url:"http://api.wunderground.com/api/c7866e4d414ea5aa/history_20160505/q/CA/Jakarta.json",	type: 'GET',	async: false,	cache: false,
+		success: function(data){
+			var response = data.history.dailysummary[0];
+			assert.equal(("maxtempm" in response )&&( "humidity" in response )&&( "meanwindspdm" in response )&&( "meanwindspdm" in response )&&( "rain" in response )&&( "snow" in response )&&( "fog" in response), true, 'Weather Data API Test');
+		},
+		error:function(data){
+			throw new Error("API Level Failure!");
+		}
+	});
+	// Call with Invalid City
+	$.ajax({
+		url:"http://api.wunderground.com/api/c7866e4d414ea5aa/history_201/q/CA/suresh.json",	type: 'GET',	async: false,	cache: false,
+		success: function(data){
+			var description = data.response.error.description;
+			assert.equal(description, 'No cities match your search query', 'Weather Data API Test for Invalid City');
+		},
+		error:function(data){
+			throw new Error("API Level Failure!");
+		}
+	});
+	// Call with Invalid Key
+	$.ajax({
+		url:"http://api.wunderground.com/api/invalid_api_key/history_20160505/q/CA/Jakarta.json",	type: 'GET',	async: false,	cache: false,
+		success: function(data){
+			var type = data.response.error.type;
+			assert.equal(type, 'keynotfound', 'Weather Data API Test for Invalid Key');
+		},
+		error:function(data){
+			throw new Error("API Level Failure!");
+		}
+	});
+	done();
 
-function tearDown() {
-	// anything to cleanup after running a testcase
-}
+});
 
-function testServiceCall() {
-	
-	assertEquals("Checking for Proper data received", 
-			{"temp":"29","pressure":"1009.92","humidity":"57","wind":"14","fog":"0","rain":"0","snow":"0"}, 
-			serviceCall(new Date("Fri Aug 14 2015 15:41:47 GMT+0530 (India Standard Time)"),{"city":"Jakarta","country":"Indonesia","Code":"HLPA","lat":-6.1745,"long":106.8227,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""}));
-}
+QUnit.test("Testing the Service Call Success Logic ", function( assert ) {
+	function call(date,station, expected) {
+		assert.deepEqual(serviceCall(date, station), expected);
+	}
+	call(new Date("Fri Aug 14 2015 15:41:47 GMT+0530 (India Standard Time)"),{"city":"Jakarta","country":"Indonesia","Code":"HLPA","lat":-6.1745,"long":106.8227,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},
+			{"fog": "0","humidity": "57","pressure": "1009.92","rain": "0","snow": "0","temp": "29","wind": "14"});
+	call(null,{"city":"Jakarta","country":"Indonesia","Code":"HLPA","lat":-6.1745,"long":106.8227,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""},{});
+	call(new Date("Fri Aug 14 2015 15:41:47 GMT+0530 (India Standard Time)"),{},{});
 
-function testServiceCall1() {
-	
-	assertEquals("Checking for Proper data received", 
-			{"temp":"29","pressure":"1009.92","humidity":"57","wind":"14","fog":"0","rain":"0","snow":"0"}, 
-			serviceCall(new Date("Fri Aug 14 2000 20:32:47 GMT+0530 (India Standard Time)"), {"city":"Nairobi","country":"Kenya","Code":"NBO","lat":1.2,"long":36.9,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""}));
-	
-}
+});
 
-function testServiceCall2() {
-	
-	assertEquals("Checking for Proper data received", 
-			{"temp":"29","pressure":"1009.92","humidity":"57","wind":"14","fog":"0","rain":"0","snow":"0"}, 
-			serviceCall(new Date("Fri Aug 14 2015 15:41:47 GMT+0530 (India Standard Time)"),{"city":"Jakarta","country":"Indonesia","Code":"HLPA","lat":-6.1745,"long":106.8227,"temperature":"", "pressure":"","humidity":"","rain":"", "wind":"","fog":"","snow":""}));
-	
-}
+QUnit.test("Test - Get dates between 2 dates", function( assert ) {
+	function date(date1,date2, expected) {
+		assert.deepEqual(getDates(date1, date2), expected);
+	}
+	date(new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Fri Aug 28 2015 15:52:30 GMT+0530 (India Standard Time)"), [new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 15 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 16 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 17 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 18 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Wed Aug 19 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 20 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Fri Aug 21 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 22 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 23 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 24 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 25 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Wed Aug 26 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 27 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Fri Aug 28 2015 15:52:30 GMT+0530 (India Standard Time)")]);
+	date(null,null,[null]);
+});
 
+QUnit.test("Test - Add days to a date", function( assert ) {
+	function date(date,days, expected) {
+		assert.deepEqual(addDays(date, days), expected);
+	}
+	date(new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)"),1,new Date("Sat Aug 15 2015 15:52:30 GMT+0530 (India Standard Time)"));
+	date(new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)"),-7,new Date("Fri Aug 7 2015 15:52:30 GMT+0530 (India Standard Time)"));
+});
 
-function testComputeDates() {
-	
-	assertEquals("Checking for dates for Weather prediction",[new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 15 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 16 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 17 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 18 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Wed Aug 19 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 20 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Fri Aug 21 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 22 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 23 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 24 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 25 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Wed Aug 26 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 27 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Fri Aug 28 2015 15:52:30 GMT+0530 (India Standard Time)")], 
-			computeDates(new Date("Sat Aug 20 2016 15:52:30 GMT+0530 (India Standard Time)"),true));
-}
-function testComputeDates1() {
-	
-	assertEquals("Checking for dates for Weather prediction",[new Date("Fri Aug 14 2016 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 15 2016 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 16 2016 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 17 2016 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 18 2016 15:52:30 GMT+0530 (India Standard Time)"),new Date("Wed Aug 19 2016 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 20 2016 15:52:30 GMT+0530 (India Standard Time)"),], 
-			computeDates(new Date("Sat Aug 20 2016 15:52:30 GMT+0530 (India Standard Time)"),false));
-}function testComputeDates2() {
-	
-	assertEquals("Checking for dates for Weather prediction","", 
-			computeDates("",true));
-}
+QUnit.test("Testing the Windowing Logic", function( assert ) {
+	function date(prev, curr, expected) {
+		assert.deepEqual(windower(prev, curr), expected);
+	}
+	date([{"temp":"28","pressure":"1011.69","humidity":"63","wind":"11","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.46","humidity":"64","wind":"13","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.00","humidity":"69","wind":"9","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.33","humidity":"66","wind":"12","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.40","humidity":"65","wind":"14","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.60","humidity":"65","wind":"8","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.90","humidity":"69","wind":"6","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.46","humidity":"64","wind":"12","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.77","humidity":"64","wind":"12","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.58","humidity":"61","wind":"14","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.42","humidity":"63","wind":"10","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1011.69","humidity":"65","wind":"15","fog":"0","rain":"0","snow":"0"},{"temp":"29","pressure":"1012.08","humidity":"65","wind":"8","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.33","humidity":"62","wind":"6","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.50","humidity":"52","wind":"11","fog":"0","rain":"0","snow":"0"}],
+			[{"temp":"28","pressure":"1011.69","humidity":"63","wind":"11","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.46","humidity":"64","wind":"13","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.00","humidity":"69","wind":"9","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.33","humidity":"66","wind":"12","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.40","humidity":"65","wind":"14","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.60","humidity":"65","wind":"8","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.90","humidity":"69","wind":"6","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.46","humidity":"64","wind":"12","fog":"0","rain":"0","snow":"0"}],
+			[[{"temp":0,"pressure":0,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":0.7699999999999818,"humidity":1,"wind":2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.5399999999999636,"humidity":5,"wind":-4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.3300000000000409,"humidity":-3,"wind":3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.9300000000000637,"humidity":-1,"wind":2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1.2000000000000455,"humidity":0,"wind":-6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.7000000000000455,"humidity":4,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.5600000000000591,"humidity":-5,"wind":6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.30999999999994543,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":1.3099999999999454,"humidity":6,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.8700000000000045,"humidity":2,"wind":-1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.6000000000000227,"humidity":-4,"wind":5,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.2699999999999818,"humidity":-1,"wind":-4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.5,"humidity":4,"wind":-8,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.13999999999998636,"humidity":-1,"wind":4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.8700000000000045,"humidity":-5,"wind":6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.8799999999999955,"humidity":-3,"wind":2,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":1.6399999999999864,"humidity":3,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.06000000000005912,"humidity":1,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.6000000000000227,"humidity":-4,"wind":-1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.43000000000006366,"humidity":3,"wind":-6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1.0600000000000591,"humidity":-1,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.16999999999995907,"humidity":-1,"wind":4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.31999999999993634,"humidity":-8,"wind":8,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.0400000000000773,"humidity":-1,"wind":-2,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":0.7099999999999227,"humidity":2,"wind":3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1.1399999999999864,"humidity":1,"wind":-5,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.10000000000002274,"humidity":0,"wind":-3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.12999999999999545,"humidity":-2,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1.3700000000000045,"humidity":-1,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.0199999999999818,"humidity":-4,"wind":6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.4800000000000182,"humidity":-6,"wind":4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.7699999999999818,"humidity":1,"wind":3,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":1.9099999999999682,"humidity":2,"wind":-3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.4399999999999409,"humidity":5,"wind":-7,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.4600000000000364,"humidity":-5,"wind":3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.4399999999999409,"humidity":-2,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.18000000000006366,"humidity":-4,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.1800000000000637,"humidity":-2,"wind":2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.2099999999999227,"humidity":-4,"wind":9,"fog":0,"snow":0,"rain":0},{"temp":1,"pressure":-1.3799999999999955,"humidity":1,"wind":-4,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":1.2099999999999227,"humidity":6,"wind":-5,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1,"humidity":0,"wind":-1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.7699999999999818,"humidity":-5,"wind":3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.75,"humidity":-5,"wind":2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.01999999999998181,"humidity":-2,"wind":-4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.9099999999999682,"humidity":0,"wind":7,"fog":0,"snow":0,"rain":0},{"temp":1,"pressure":-0.8199999999999363,"humidity":-4,"wind":2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.1299999999999955,"humidity":-2,"wind":-6,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":1.7699999999999818,"humidity":1,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1.3099999999999454,"humidity":0,"wind":-1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.4199999999999591,"humidity":-8,"wind":5,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.9100000000000819,"humidity":-3,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.7099999999999227,"humidity":0,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":1,"pressure":-1.5199999999999818,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.5699999999999363,"humidity":-7,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.9600000000000364,"humidity":-12,"wind":-1,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":2.0799999999999272,"humidity":1,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.12000000000000455,"humidity":-3,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.5800000000000409,"humidity":-6,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.6399999999999864,"humidity":-1,"wind":3,"fog":0,"snow":0,"rain":0},{"temp":1,"pressure":-0.31999999999993634,"humidity":0,"wind":-6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.2699999999999818,"humidity":-3,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.39999999999997726,"humidity":-17,"wind":5,"fog":0,"snow":0,"rain":0}]]);
+	date(null,[{"temp":"28","pressure":"1011.69","humidity":"63","wind":"11","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.46","humidity":"64","wind":"13","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.00","humidity":"69","wind":"9","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.33","humidity":"66","wind":"12","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.40","humidity":"65","wind":"14","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.60","humidity":"65","wind":"8","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.90","humidity":"69","wind":"6","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1013.46","humidity":"64","wind":"12","fog":"0","rain":"0","snow":"0"}],
+			[]);
+	date(null,null,[]);
 
-function testGetDates() {
-	
-	assertEquals("Checking dates received", 
-			[new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 15 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 16 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 17 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 18 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Wed Aug 19 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 20 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Fri Aug 21 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 22 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 23 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 24 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 25 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Wed Aug 26 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 27 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Fri Aug 28 2015 15:52:30 GMT+0530 (India Standard Time)")],
-			getDates(new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)"), new Date("Fri Aug 28 2015 15:52:30 GMT+0530 (India Standard Time)")));
-}
-function testGetDates1() {
-	
-	assertEquals("Checking dates received", 
-			"",
-			getDates("", ""));
-}function testGetDates2() {
-	
-	assertEquals("Checking dates received", 
-			"",
-			getDates("20/6/2015", "26/6/2015"));
-}
+});
 
-function testFindMean() {
-	
-	assertEquals("Checking for Meaners received", [0.14285714285714285,-1,0.14285714285714285,0,0,0,-0.3628571428571539],
-			findMean([{"temp":"29","pressure":"1009.92","humidity":"57","wind":"14","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1009.69","humidity":"68","wind":"14","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1009.92","humidity":"68","wind":"19","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1010.82","humidity":"64","wind":"13","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1011.58","humidity":"63","wind":"12","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1010.86","humidity":"71","wind":"11","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1011.69","humidity":"63","wind":"11","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.46","humidity":"64","wind":"13","fog":"0","rain":"0","snow":"0"}]));
-}
+QUnit.test("Testing Least ED Logic ", function( assert ) {
+	function date(ed, expected) {
+		assert.deepEqual(leastElementIndex(ed), expected);
+	}
+	date([[{"temp":0,"pressure":0.7699999999999818,"humidity":1,"wind":2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.5399999999999636,"humidity":5,"wind":-4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.3300000000000409,"humidity":-3,"wind":3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.9300000000000637,"humidity":-1,"wind":2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1.2000000000000455,"humidity":0,"wind":-6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.7000000000000455,"humidity":4,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.5600000000000591,"humidity":-5,"wind":6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.30999999999994543,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":1.3099999999999454,"humidity":6,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.8700000000000045,"humidity":2,"wind":-1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.6000000000000227,"humidity":-4,"wind":5,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.2699999999999818,"humidity":-1,"wind":-4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.5,"humidity":4,"wind":-8,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.13999999999998636,"humidity":-1,"wind":4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.8700000000000045,"humidity":-5,"wind":6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.8799999999999955,"humidity":-3,"wind":2,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":1.6399999999999864,"humidity":3,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.06000000000005912,"humidity":1,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.6000000000000227,"humidity":-4,"wind":-1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.43000000000006366,"humidity":3,"wind":-6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1.0600000000000591,"humidity":-1,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.16999999999995907,"humidity":-1,"wind":4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.31999999999993634,"humidity":-8,"wind":8,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.0400000000000773,"humidity":-1,"wind":-2,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":0.7099999999999227,"humidity":2,"wind":3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1.1399999999999864,"humidity":1,"wind":-5,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.10000000000002274,"humidity":0,"wind":-3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.12999999999999545,"humidity":-2,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1.3700000000000045,"humidity":-1,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.0199999999999818,"humidity":-4,"wind":6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.4800000000000182,"humidity":-6,"wind":4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.7699999999999818,"humidity":1,"wind":3,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":1.9099999999999682,"humidity":2,"wind":-3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.4399999999999409,"humidity":5,"wind":-7,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.4600000000000364,"humidity":-5,"wind":3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.4399999999999409,"humidity":-2,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.18000000000006366,"humidity":-4,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.1800000000000637,"humidity":-2,"wind":2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.2099999999999227,"humidity":-4,"wind":9,"fog":0,"snow":0,"rain":0},{"temp":1,"pressure":-1.3799999999999955,"humidity":1,"wind":-4,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":1.2099999999999227,"humidity":6,"wind":-5,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1,"humidity":0,"wind":-1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.7699999999999818,"humidity":-5,"wind":3,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.75,"humidity":-5,"wind":2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.01999999999998181,"humidity":-2,"wind":-4,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.9099999999999682,"humidity":0,"wind":7,"fog":0,"snow":0,"rain":0},{"temp":1,"pressure":-0.8199999999999363,"humidity":-4,"wind":2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.1299999999999955,"humidity":-2,"wind":-6,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":1.7699999999999818,"humidity":1,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":1.3099999999999454,"humidity":0,"wind":-1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.4199999999999591,"humidity":-8,"wind":5,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.9100000000000819,"humidity":-3,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.7099999999999227,"humidity":0,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":1,"pressure":-1.5199999999999818,"humidity":0,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.5699999999999363,"humidity":-7,"wind":0,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.9600000000000364,"humidity":-12,"wind":-1,"fog":0,"snow":0,"rain":0}],[{"temp":0,"pressure":2.0799999999999272,"humidity":1,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":0.12000000000000455,"humidity":-3,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.5800000000000409,"humidity":-6,"wind":1,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.6399999999999864,"humidity":-1,"wind":3,"fog":0,"snow":0,"rain":0},{"temp":1,"pressure":-0.31999999999993634,"humidity":0,"wind":-6,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-1.2699999999999818,"humidity":-3,"wind":-2,"fog":0,"snow":0,"rain":0},{"temp":0,"pressure":-0.39999999999997726,"humidity":-17,"wind":5,"fog":0,"snow":0,"rain":0}]],6);
+	date([],0);
 
-function testFindMean1() {
-	
-	assertEquals("Checking for Meaners received", [-4,-9.142857142857142,-1.8571428571428572,0,0,0,-144.63714285714286],
-			findMean([{"temp":null,"pressure":null,"humidity":null,"wind":null,"fog":null,"rain":null,"snow":null},{"temp":"28","pressure":"1009.69","humidity":"68","wind":"14","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1009.92","humidity":"68","wind":"19","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1010.82","humidity":"64","wind":"13","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1011.58","humidity":"63","wind":"12","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1010.86","humidity":"71","wind":"11","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1011.69","humidity":"63","wind":"11","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1012.46","humidity":"64","wind":"13","fog":"0","rain":"0","snow":"0"}]));
-}
-function testFindMean2() {
-	
-	assertEquals("Checking for Meaners received", [NaN,NaN,NaN,NaN,NaN,NaN,NaN],
-			findMean([""]));
-}
-function testGetWeatherCondition(){
-	assertEquals("Checking for Weather Data Received", {"city":"Jakarta","country":"Indonesia","Code":"HLPA","lat":-6.1745,"long":106.8227,"temperature":33,"pressure":9.821428571428571,"humidity":69.32142857142857,"rain":0,"wind":9,"fog":-0.3328571428571487,"snow":0},
-			getWeatherCondition());
-	
-}
+});
 
+QUnit.test("Test - Compute Days", function( assert ) {
+	function date(date1,prevBool, expected) {
+		assert.deepEqual(computeDates(date1, prevBool), expected);
+	}
+	date(new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)"),true, 	
+			[new Date("Thu Aug 07 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 08 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 09 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 10 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 11 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 12 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Wed Aug 13 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 14 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Fri Aug 15 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 16 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 17 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 18 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 19 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Wed Aug 20 2014 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 21 2014 15:52:30 GMT+0530 (India Standard Time)")]);
+	date(new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)"),false, 	
+			[new Date("Fri Aug 07 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 08 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 09 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 10 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 11 2015 15:52:30 GMT+0530 (India StandardTime)"),new Date("Wed Aug 12 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 13 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)")]);
+	date(null,true,[]);
+	date("2008/01/28",false, []);
+	date(new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)"),null, [new Date("Fri Aug 07 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sat Aug 08 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Sun Aug 09 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Mon Aug 10 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Tue Aug 11 2015 15:52:30 GMT+0530 (India StandardTime)"),new Date("Wed Aug 12 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Thu Aug 13 2015 15:52:30 GMT+0530 (India Standard Time)"),new Date("Fri Aug 14 2015 15:52:30 GMT+0530 (India Standard Time)")]);
 
+});
 
+QUnit.test(" Test - Get Meaners", function( assert ) {
+	function meaner(param, expected) {
+		assert.deepEqual(findMean(param), expected);
+	}
+	meaner([{"temp":"29","pressure":"1009.92","humidity":"57","wind":"14","fog":"0","rain":"0","snow":"0"},{"temp":"28","pressure":"1009.69","humidity":"68","wind":"14","fog":"0","rain":"0","snow":"0"},{"temp":"35","pressure":"1011.58","humidity":"63","wind":"12","fog":"0","rain":"0","snow":"0"},{"temp":"20","pressure":"1010.86","humidity":"71","wind":"11","fog":"0","rain":"0","snow":"0"}],
+			{"fog": 0,"humidity": -4.666666666666667,"pressure": -0.3133333333333515,"rain": 0,"snow": 0,"temp": 3,"wind": 1});
+	meaner(null,{"temp":0.0,"humidity":0.0,"wind":0.0,"fog":0.0,"snow":0.0,"rain":0.0,"pressure":0.0});
+	meaner([{"temp":"29","pressure":"1009.92","wind":"14","fog":"0","rain":"0"},{"temp":"28","pressure":"1009.69","wind":"14","fog":"0","rain":"0"},{"temp":"35","pressure":"1011.58","wind":"12","fog":"0","rain":"0"},{"temp":"20","pressure":"1010.86","wind":"11","fog":"0","rain":"0"}],
+			{"fog": 0,"humidity": 0,"pressure": -0.3133333333333515,"rain": 0,"snow": 0,"temp": 3,"wind": 1});
+	meaner({},{"temp":NaN,"humidity":NaN,"wind":NaN,"fog":NaN,"snow":NaN,"rain":NaN,"pressure":NaN});
+});
