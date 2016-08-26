@@ -192,17 +192,17 @@ function computeDates(requiredDate, prev){
 	if(prev){ 
 		//Prev year dates
 		requiredDate.setDate(requiredDate.getDate() - 365);
-		dates = getDates(requiredDate.addDays(-7), requiredDate.addDays(7));
+		dates = getDates(addDays(requiredDate,-7), addDays(requiredDate,7));
 	}else{
 		//curr year dates
-		dates = getDates(requiredDate.addDays(-7), requiredDate);
+		dates = getDates(addDays(requiredDate,-7), requiredDate);
 	}
 	return dates;
 
 }
 // Function: To add days to given / specified date
-Date.prototype.addDays = function(days) {
-	var dat = new Date(this.valueOf())
+function addDays(currentDate,days) {
+	var dat = new Date(currentDate);
 	dat.setDate(dat.getDate() + days);
 	return dat;
 }
@@ -212,7 +212,7 @@ function getDates(startDate, stopDate) {
 	var currentDate = startDate;
 	while (currentDate <= stopDate) {
 		dateArray.push(currentDate)
-		currentDate = currentDate.addDays(1);
+		currentDate = addDays(currentDate,1);
 	}
 	return dateArray;
 }
