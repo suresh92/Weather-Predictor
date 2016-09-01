@@ -55,7 +55,7 @@ weatherApp.controller('weatherPredictor', ['$scope','$http','$q','$timeout',func
 					//Now, Add V to the previous day’s weather condition to get req. days's weather condition
 					url = "http://api.wunderground.com/api/c7866e4d414ea5aa/history_"+(requiredDate.getFullYear()).toString()+((requiredDate.getMonth().toString().length<2)?"0"+requiredDate.getMonth():requiredDate.getMonth())+((requiredDate.getDate().toString().length<2)?"0"+(requiredDate.getDate()-1):(requiredDate.getDate()-1))+"/q/CA/"+$scope.weatherData[n].city.toString()+".json";
 					$.ajax({
-						url:url,	type: 'GET',	async: false,	cache: false,
+						url:url,	type: 'GET',	async: false,	cache: true,
 						success: function(response){
 							// Add the Prediction factor to previous weather conditions
 							$scope.weatherData[n].temperature = parseInt(response.history.dailysummary[0].maxtempm)+actualMeaners.temp;
