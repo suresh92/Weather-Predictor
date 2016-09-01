@@ -88,7 +88,6 @@ function serviceCall(datesForcomputation,weatherData){
 		$.ajax({
 			url:url,	type: 'GET',	async: false,	cache: true,
 			success: function(response){
-				console.log("!!");
 				data={"temp":response.history.dailysummary[0].meantempm,
 						"pressure":response.history.dailysummary[0].meanpressurem,
 						"humidity":response.history.dailysummary[0].humidity,
