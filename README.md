@@ -14,8 +14,10 @@ Choose a date as input and Click the "Get Weather Conditions" button to get the 
 
 # Algorithm Behind the weather prediction implementation
 
-Weather conditions of future dates are predicted based on two factors
+Weather conditions of future dates are predicted based on two factors.
+
 1. Weather conditions prevailed in previous year - same date as that of required date
+
 2. Weather conditions prevailed a week before the required date
 
 Algorithm is as follows:
@@ -37,7 +39,7 @@ Step 2: Get the weather conditions of following days
   
 Step 3: Slice the 15 days to 9 windows as (1-7),(2-8),(3-9),(4-10),(5-11),....(9-15)
 
-Now we have to find the window matching to the CD among windows in PD. We find this using Euclidean distance method.
+Now  among PD, find a window which matches with CD. We find this using Euclidean distance method.
 Euclidean distance between 2 points: (x1,y1) and (x2,y2) is (x1-x2),(y1-y2) 
 
 Step 4: Compute the Euclidean distance of each window with the matrix CD as ED1, ED2, ED3, ..... ED9
