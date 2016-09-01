@@ -111,6 +111,7 @@ function serviceCall(datesForcomputation,weatherData){
 
 function windower(prevYearData,curYearData){
 	var i=0; var j=0; var e=0;
+	var WINDOW_COUNT = 8;
 	var windowcount = 0;
 	var ed = [];
 	try{
@@ -127,7 +128,7 @@ function windower(prevYearData,curYearData){
 					"rain" : prevYearData[j].rain - curYearData[i].rain
 			};
 			i++; j++; 
-			if(i==(curYearData.length) && windowcount <= 8 ){
+			if(i==(curYearData.length) && windowcount <= WINDOW_COUNT ){
 				windowcount++;
 				i=0;
 				j = windowcount;
